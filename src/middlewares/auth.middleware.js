@@ -1,32 +1,27 @@
-import { ApiError } from "../utils/apierror.js";
+import { Client, Account } from "appwrite";
 import { asyncHandeler } from "../utils/asynchandeler.js";
-import jwt from "jsonwebtoken"
-import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/apierror.js";
+import { client } from "../Appwrite_Services/appwrite.js";
 
-export const verifyjwt = asyncHandeler(async (req ,res , next)=>{
-    try {
-        const token =  req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer"," ")
-    
-        if(!token){
-            return res.status(401).json(new ApiError(401 ,{} ,"Unauthorized Req"));
-        }
-    
-        const decodedToken =  jwt.verify(token , process.env.ACCESS_TOKEN_SECRET)
-    
-        const user = await User.findById(decodedToken?._id).
-        select("-password -refreshToken")
-    
-        if(!user){
-            // 
-           return res.status(401).json(new ApiError(401 ,{} ,"Invaild Access Token"));
-           // throw new ApiError(401,"")
-        }
-    
-        req.user = user;
-        next()
-    } catch (error) {
-        res.status(401).json(new ApiError(401 ,{} ,"Invaild Access Token"));
-        // throw new ApiError(401,error?.message || "Invaild Access Token")
+export const verifyjwt = asyncHandeler(async (req, res, next) => {
+    const rawToken = req.headers.authorization;
+    const jwt = rawToken?.replace("Bearer ", "").trim();
+
+    if (!jwt) {
+        return res.status(401).json(new ApiError(401, {}, "Missing Authorization Token"));
     }
 
-})
+    try {
+        // ✅ Set the JWT dynamically for this request
+        client.setJWT(jwt);
+
+        // ✅ Create a fresh Account instance with the new JWT
+        const account = new Account(client);
+        const user = await account.get(); // validate user with Appwrite
+
+        req.user = user;
+        next();
+    } catch (err) {
+        res.status(401).json(new ApiError(401, {}, "Invalid or expired JWT"));
+    }
+});

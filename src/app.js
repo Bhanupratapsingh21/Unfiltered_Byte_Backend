@@ -36,7 +36,6 @@ app.use(cookieParser())
 app.get("/checkhealthstatus", healthcheck);
 
 // routes import 
-import userRouter from "./routes/user.routes.js"
 import TweetsRouter from "./routes/tweets.routes.js"
 import Videorouter from "./routes/video.routes.js"
 import LikeRouter from "./routes/like.routes.js"
@@ -47,7 +46,6 @@ import { healthcheck } from "./controllers/healthcheck.controller.js"
 import globalsearchRouter from "./routes/globalsearch.routes.js";
 
 // routes declaration
-app.use('/api/v1/users', userRouter);
 app.use("/api/v1/tweets", TweetsRouter);
 app.use("/api/v1/videos", Videorouter);
 app.use("/api/v1/like", LikeRouter)

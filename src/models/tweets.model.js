@@ -17,8 +17,7 @@ const TweetSchema = new Schema({
     },
     createdBy: {
         _id: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
+            type: String,
         },
         username: {
             type: String
