@@ -3,17 +3,12 @@ import mongoose, { Schema } from "mongoose";
 const TweetSchema = new Schema({
     content: {
         type: String,
-        required: true
+    },
+    toptitle: {
+        type: String,
     },
     coverImageURL: {
-        url: {
-            type: String,
-            required: true,
-        },
-        public_id: {
-            type: String,
-            required: true,
-        }
+        type: String,
     },
     createdBy: {
         _id: {

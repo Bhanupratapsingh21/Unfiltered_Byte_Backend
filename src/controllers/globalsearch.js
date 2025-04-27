@@ -3,8 +3,8 @@ import { ApiError } from "../utils/apierror.js"
 import { ApiResponse } from "../utils/apiresponse.js"
 import { asyncHandeler } from "../utils/asynchandeler.js"
 import { Video } from "../models/Video.model.js"
-import { Tweet } from "../models/tweets.model.js"
-import { User } from "../models/user.model.js"
+import { Tweet } from "../models/Posts.model.js"
+
 
 const globalsearch = asyncHandeler(async (req, res) => {
     const { s } = req.query;
@@ -42,7 +42,7 @@ const globalsearch = asyncHandeler(async (req, res) => {
 
         const totalVideosCount = await Video.countDocuments({
             tittle: { $regex: s, $options: 'i' },
-            status : "Done"
+            status: "Done"
         });
 
         // Tweet Search
@@ -69,39 +69,10 @@ const globalsearch = asyncHandeler(async (req, res) => {
             content: { $regex: s, $options: 'i' }
         });
 
-        // User Search
-        const userAggregationPipeline = [
-            {
-                $match: {
-                    $or: [
-                        { username: { $regex: s, $options: 'i' } },
-                        { fullname: { $regex: s, $options: 'i' } }
-                    ]
-                }
-            },
-            { $skip: skip },
-            { $limit: limitOptions },
-            {
-                $project: {
-                    username: 1,
-                    fullname: 1
-                }
-            }
-        ];
-        const users = await User.aggregate(userAggregationPipeline);
-
-        const totalUsersCount = await User.countDocuments({
-            $or: [
-                { username: { $regex: s, $options: 'i' } },
-                { fullname: { $regex: s, $options: 'i' } }
-            ]
-        });
-
         // Combine results
         const combinedResults = [
             ...videos.map(v => ({ type: 'video', ...v })),
             ...tweets.map(t => ({ type: 'tweet', ...t })),
-            ...users.map(u => ({ type: 'user', ...u }))
         ];
 
         const totalCount = totalVideosCount + totalTweetsCount + totalUsersCount;

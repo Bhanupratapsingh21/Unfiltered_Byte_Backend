@@ -1,5 +1,4 @@
 import { like } from "../models/like.model.js"
-import { User } from "../models/user.model.js"
 import { Comment } from "../models/comments.model.js"
 import { ApiError } from "../utils/apierror.js"
 import { ApiResponse } from "../utils/apiresponse.js"
@@ -9,7 +8,6 @@ const healthcheck = asyncHandeler(async (req, res) => {
     // console.log("Health Cheack :: GOOD");
 
     try {
-        const totalUser = await User.countDocuments({});
         const totallike = await like.countDocuments({});
         const totalComments = await Comment.countDocuments({});
 

@@ -14,10 +14,9 @@ connectDB()
         app.on("error", (error) => {
             console.log("error not able to listin", error);
         })
-
-        app.listen(process.env.PORT || 8000, () => {
-            console.log(`Server iS Running At Port ${process.env.PORT}`)
-        })
+        app.listen(process.env.PORT, '0.0.0.0', () => {
+            console.log("Server iS Running At Port 4000");
+        });
     })
     .catch(
         (err) => {

@@ -1,4 +1,4 @@
-import { Tweet } from "../models/tweets.model.js";
+import { Tweet } from "../models/Posts.model.js";
 import { uploadOnCloudinary, deletefromcloudinary } from "../utils/cloudinary.js";
 import { asyncHandeler } from "../utils/asynchandeler.js";
 import { ApiError } from "../utils/apierror.js";
@@ -6,35 +6,20 @@ import { ApiResponse } from "../utils/apiresponse.js";
 import verifypostowner from "../utils/checkforpostowner.js";
 import { like } from "../models/like.model.js";
 import mongoose from "mongoose";
+
 const handleaddblogs = asyncHandeler(async (req, res) => {
     try {
-        // Check if profile image file exists
-        const profileImgPath = req.files?.tweetthumbnail?.[0]?.path;
-        const { content } = req.body;
+        const { content, toptitle, coverImageURL, isAnonymous } = req.body;
 
-        if (!content) {
-            return res.status(400).json(new ApiError(400, {}, "Please Add Atleat Some Words To tweet"));
-        }
-        if (!profileImgPath) {
-            return res.status(400).json(new ApiError(400, {}, "Profile image is required"));
-        }
-
-        // Upload image to Cloudinary
-        const uploadedImage = await uploadOnCloudinary(profileImgPath);
-        if (!uploadedImage) {
-            return res.status(500).json(new ApiError(500, {}, "Failed to upload image"));
-        }
 
         const blog = await Tweet.create({
             content,
-            coverImageURL: {
-                url: uploadedImage.url,
-                public_id: uploadedImage.public_id
-            },
+            toptitle,
+            coverImageURL: coverImageURL ? coverImageURL : null, // if no image, keep it null or empty
             createdBy: {
-                _id: req.user._id,
-                username: req.user.username,
-                profileimg: req.user.avatar.url,
+                _id: isAnonymous ? "Anonymous" : req.user.userprofile.userId,
+                username: isAnonymous ? "Anonymous" : req.user.userprofile.username,
+                profileimg: isAnonymous ? "https://res.cloudinary.com/dhvkjanwa/image/upload/v1745684103/txflglvist3rnhwmygsc.jpg" : req.user.userprofile.profilepicture,
             },
         });
 
@@ -43,6 +28,7 @@ const handleaddblogs = asyncHandeler(async (req, res) => {
         }
 
         return res.status(201).json(new ApiResponse(201, blog, "Successfully Uploaded Tweet"));
+
     } catch (error) {
         console.error(error);
         return res.status(500).json(new ApiError(500, {}, `Server Error :: ${error}`));

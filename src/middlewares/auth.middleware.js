@@ -2,6 +2,7 @@ import { Client, Account } from "appwrite";
 import { asyncHandeler } from "../utils/asynchandeler.js";
 import { ApiError } from "../utils/apierror.js";
 import { client } from "../Appwrite_Services/appwrite.js";
+import UserProfileService from "../Appwrite_Services/userProfileService.js";
 
 export const verifyjwt = asyncHandeler(async (req, res, next) => {
     const rawToken = req.headers.authorization;
@@ -18,8 +19,11 @@ export const verifyjwt = asyncHandeler(async (req, res, next) => {
         // ✅ Create a fresh Account instance with the new JWT
         const account = new Account(client);
         const user = await account.get(); // validate user with Appwrite
-
-        req.user = user;
+        const userprofile = await UserProfileService.getUserProfile(user.$id);
+        req.user = {
+            ...user,
+            userprofile
+        };
         next();
     } catch (err) {
         res.status(401).json(new ApiError(401, {}, "Invalid or expired JWT"));

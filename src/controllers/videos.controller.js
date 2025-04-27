@@ -6,7 +6,6 @@ import axios from "axios";
 import { Video } from "../models/Video.model.js";
 import { deletefromcloudinary, videodeletefromcloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import verifypostowner from "../utils/checkforpostowner.js";
-import { User } from "../models/user.model.js";
 import { like } from "../models/like.model.js";
 import { Subscription } from "../models/subscription.model.js";
 import checkServerAvailability from "../utils/checkforvideoencoder.js";

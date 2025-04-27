@@ -5,7 +5,7 @@ import { asyncHandeler } from "../utils/asynchandeler.js"
 import { json } from "express"
 import { Comment } from "../models/comments.model.js"
 import { Video } from "../models/Video.model.js"
-import { Tweet } from "../models/tweets.model.js"
+import { Tweet } from "../models/Posts.model.js"
 import verifypostowner from "../utils/checkforpostowner.js"
 
 const getPostComments = asyncHandeler(async (req, res) => {
