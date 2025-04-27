@@ -9,12 +9,15 @@ import mongoose from "mongoose";
 
 const handleaddblogs = asyncHandeler(async (req, res) => {
     try {
-        const { content, toptitle, coverImageURL, isAnonymous } = req.body;
-
+        const { content, toptitle, tags, coverImageURL, isAnonymous } = req.body;
+        if (!content || !toptitle || !coverImageURL) {
+            return res.status(400).json(new ApiError(400, "Pls Give Atleast One Thing To Post"));
+        }
 
         const blog = await Tweet.create({
             content,
             toptitle,
+            tags,
             coverImageURL: coverImageURL ? coverImageURL : null, // if no image, keep it null or empty
             createdBy: {
                 _id: isAnonymous ? "Anonymous" : req.user.userprofile.userId,

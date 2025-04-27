@@ -10,6 +10,7 @@ const TweetSchema = new Schema({
     coverImageURL: {
         type: String,
     },
+    tags: String,
     createdBy: {
         _id: {
             type: String,
