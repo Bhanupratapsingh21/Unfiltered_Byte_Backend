@@ -9,7 +9,7 @@ const commentSchema = new Schema(
         },
         commenton: {
             type: String,
-            enum: ['Video', 'Tweet'],
+            enum: ['Video', 'Post'],
             required: true
         },
         postId: {
@@ -17,8 +17,20 @@ const commentSchema = new Schema(
             required: true
         },
         owner: {
-            type: Schema.Types.ObjectId,
-            ref: "User"
+            _id: {
+                type: String,
+                required : true
+            },
+            username: {
+ 
+                type: String,
+                required : true
+            },
+            profileimg: {
+
+                type: String,
+                required : true
+            }
         }
     },
     {

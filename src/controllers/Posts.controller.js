@@ -57,24 +57,26 @@ const getblogsbasic = asyncHandeler(async (req, res) => {
         return res.status(500).json(new ApiError(500, {}, "Internal Server Error Please Try Again"));
     }
 });
+
 const getblogsAdv = asyncHandeler(async (req, res) => {
-    // Get data from params and queries   
     const { q, limit, page } = req.query;
+
+    // Determine sort order
     let sortOption = {};
     if (q === "newestfirst") {
         sortOption = { createdAt: -1 };
-    } else if (q === 'oldestfirst') {
+    } else if (q === "oldestfirst") {
         sortOption = { createdAt: 1 };
     }
 
-    // Pagination options
     const pageNumber = parseInt(page) || 1;
     const limitOptions = parseInt(limit) || 10;
     const skip = (pageNumber - 1) * limitOptions;
-    const userId = req.user ? new mongoose.Types.ObjectId(req.user._id) : null;
+
+    const userId = req.user?.userprofile?.userId || null;
 
     try {
-        const blogs = await Tweet.aggregate([
+        const aggregationPipeline = [
             { $match: {} },
             { $sort: sortOption },
             { $skip: skip },
@@ -84,7 +86,13 @@ const getblogsAdv = asyncHandeler(async (req, res) => {
                     from: 'likes',
                     let: { tweetId: '$_id' },
                     pipeline: [
-                        { $match: { $expr: { $eq: ['$tweet', '$$tweetId'] } } },
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ['$tweet', '$$tweetId']
+                                }
+                            }
+                        },
                         {
                             $group: {
                                 _id: null,
@@ -100,7 +108,6 @@ const getblogsAdv = asyncHandeler(async (req, res) => {
                     as: 'likes'
                 }
             },
-            // Add likeCount and likedByCurrentUser to each tweet
             {
                 $addFields: {
                     likeCount: { $ifNull: [{ $arrayElemAt: ['$likes.likeCount', 0] }, 0] },
@@ -127,17 +134,50 @@ const getblogsAdv = asyncHandeler(async (req, res) => {
                     as: 'subscription'
                 }
             },
-            // Add subscribedByCurrentUser field
             {
                 $addFields: {
                     subscribedByCurrentUser: { $gt: [{ $size: '$subscription' }, 0] }
                 }
             },
-            // Remove the likes and subscription array as they are no longer needed
-            { $project: { likes: 0, subscription: 0 } }
-        ]);
+            {
+                $lookup: {
+                    from: 'comments',  // 🔥 Correct collection name
+                    let: { tweetId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ['$postId', '$$tweetId']
+                                }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                commentCount: { $sum: 1 },
+                            }
+                        }
+                    ],
+                    as: 'commentsData' // ✅ Renamed to avoid confusion
+                }
+            },
+            {
+                $addFields: {
+                    commentCount: { $ifNull: [{ $arrayElemAt: ['$commentsData.commentCount', 0] }, 0] }
+                }
+            },
+            {
+                $project: {
+                    likes: 0,
+                    subscription: 0,
+                    commentsData: 0  // ✅ Hide raw comments array
+                }
+            }
+        ];
 
-        const totalBlogs = await Tweet.countDocuments();
+
+        const blogs = await Tweet.aggregate(aggregationPipeline);
+        const totalBlogs = await Tweet.countDocuments({});
         const totalPages = Math.ceil(totalBlogs / limitOptions);
 
         return res.status(200).json(new ApiResponse(200, {
@@ -152,6 +192,7 @@ const getblogsAdv = asyncHandeler(async (req, res) => {
         return res.status(500).json(new ApiError(500, {}, "Internal Server Error Please Try Again"));
     }
 });
+
 
 
 

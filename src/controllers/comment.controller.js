@@ -12,18 +12,13 @@ const getPostComments = asyncHandeler(async (req, res) => {
     const postId = req.params.postId;
 
     if (!mongoose.Types.ObjectId.isValid(postId)) {
-        return res.status(400).json(new ApiError(400, {}, "Invalid video ID format"));
+        return res.status(400).json(new ApiError(400, {}, "Invalid ID format"));
     }
-    // console.log(req.user)
 
     const { q, limit, page } = req.query;
 
-    const userId = req?.user._id;
-
     let sortOptions = { createdAt: -1 };
-    if (q === "newestfirst") {
-        sortOptions = { createdAt: -1 };
-    } else if (q === "oldestfirst") {
+    if (q === "oldestfirst") {
         sortOptions = { createdAt: 1 };
     }
 
@@ -31,90 +26,53 @@ const getPostComments = asyncHandeler(async (req, res) => {
     const limitOptions = parseInt(limit) || 10;
     const skip = (pageNumber - 1) * limitOptions;
 
+    const userId = req.user?.userprofile?.userId || null;
+
     try {
-        const aggregationPipeline = [
+        const Comments = await Comment.aggregate([
             { $match: { postId: new mongoose.Types.ObjectId(postId) } },
-            {
-                $lookup: {
-                    from: "users", // the name of the User collection
-                    localField: "owner",
-                    foreignField: "_id",
-                    as: "user"
-                }
-            },
-            { $unwind: "$user" },
             { $sort: sortOptions },
             { $skip: skip },
             { $limit: limitOptions },
             {
                 $lookup: {
-                    from: "likes",
-                    let: { commentId: "$_id" },
-                    pipeline: [
-                        {
-                            $match: {
-                                $expr: { $eq: ["$comment", "$$commentId"] }
-                            }
-                        }
-                    ],
-                    as: "likes"
-                }
-            },
-            {
-                $addFields: {
-                    likeCount: { $size: "$likes" }
-                }
-            },
-            {
-                $lookup: {
-                    from: "likes",
-                    let: { commentId: "$_id", userId: new mongoose.Types.ObjectId(userId) },
+                    from: 'likes',
+                    let: { commentId: '$_id' },
                     pipeline: [
                         {
                             $match: {
                                 $expr: {
-                                    $and: [
-                                        { $eq: ["$comment", "$$commentId"] },
-                                        { $eq: ["$likedBy", "$$userId"] }
-                                    ]
+                                    $eq: ['$comment', '$$commentId']
+                                }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                likeCount: { $sum: 1 },
+                                likedByCurrentUser: {
+                                    $max: {
+                                        $cond: [{ $eq: ['$likedBy', userId] }, true, false]
+                                    }
                                 }
                             }
                         }
                     ],
-                    as: "likeInfo"
+                    as: 'likes'
                 }
             },
             {
                 $addFields: {
-                    commentLikeState: { $cond: { if: { $gt: [{ $size: "$likeInfo" }, 0] }, then: true, else: false } }
+                    likeCount: { $ifNull: [{ $arrayElemAt: ['$likes.likeCount', 0] }, 0] },
+                    likedByCurrentUser: userId ? { $ifNull: [{ $arrayElemAt: ['$likes.likedByCurrentUser', 0] }, false] } : false
                 }
             },
-            {
-                $project: {
-                    content: 1,
-                    commenton: 1,
-                    postId: 1,
-                    createdAt: 1,
-                    updatedAt: 1,
-                    user: {
-                        username: 1,
-                        email: 1,
-                        fullname: 1,
-                        avatar: 1
-                    },
-                    commentLikeState: 1,
-                    likeCount: 1
-                }
-            }
-        ];
-
-        const Comments = await Comment.aggregate(aggregationPipeline);
-
+            { $project: { likes: 0 } }
+        ]);
         if (!Comments.length) {
             return res.status(404).json(new ApiError(404, {}, "Not Found"));
         }
-
-        const totalComment = await Comment.countDocuments({ postId: new mongoose.Types.ObjectId(postId) });
+        const totalComment = await Comment.countDocuments({ postId });
         const totalPages = Math.ceil(totalComment / limitOptions);
 
         return res.status(200).json(new ApiResponse(200, {
@@ -130,17 +88,24 @@ const getPostComments = asyncHandeler(async (req, res) => {
     }
 });
 
+
 const addComment = asyncHandeler(async (req, res) => {
-    // check login 
+    // check login
+
     // check data 
     const postId = req.params.postId;
     //console.log(postId)
     if (!mongoose.Types.ObjectId.isValid(postId)) {
         return res.status(400).json(new ApiError(400, {}, "Invalid video ID format"));
     }
+
     const commenton = req.params.type
     //console.log(postId)
-    const { content } = req.body
+    const { content, username, profileimg } = req.body
+    //console.log(req.user)
+    if (!req.user.userprofile.userId) {
+        return res.status(400).json(new ApiError(401, {}, "Pls Login"));
+    }
     if (!content) {
         return res.status(401).json(new ApiError(401, {}, "Please Provide Content For Comment"));
     }
@@ -154,7 +119,7 @@ const addComment = asyncHandeler(async (req, res) => {
             if (!video) {
                 return res.status(404).json(new ApiError(404, {}, `Your ${commenton} Is Not Found`));
             }
-        } else if (commenton === "Tweet") {
+        } else if (commenton === "Post") {
             const tweet = await Tweet.findById(postId)
             if (!tweet) {
                 return res.status(404).json(new ApiError(404, {}, `Your ${commenton} Is Not Found`));
@@ -171,7 +136,11 @@ const addComment = asyncHandeler(async (req, res) => {
         content,
         commenton: commenton.toString(),
         postId,
-        owner: req.user._id
+        owner: {
+            _id: req.user.userprofile.userId,
+            username: username || req.user.userprofile.username,
+            profileimg: profileimg || req.user.userprofile.profilepicture
+        }
     });
 
     if (!comment) {
