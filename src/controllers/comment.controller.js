@@ -1,14 +1,13 @@
 import mongoose from "mongoose"
 import { ApiError } from "../utils/apierror.js"
 import { ApiResponse } from "../utils/apiresponse.js"
-import { asyncHandeler } from "../utils/asynchandeler.js"
-import { json } from "express"
+import { asynchandler } from "../utils/asynchandler.js"
 import { Comment } from "../models/comments.model.js"
 import { Video } from "../models/Video.model.js"
 import { Tweet } from "../models/Posts.model.js"
 import verifypostowner from "../utils/checkforpostowner.js"
 
-const getPostComments = asyncHandeler(async (req, res) => {
+const getPostComments = asynchandler(async (req, res) => {
     const postId = req.params.postId;
 
     if (!mongoose.Types.ObjectId.isValid(postId)) {
@@ -89,7 +88,7 @@ const getPostComments = asyncHandeler(async (req, res) => {
 });
 
 
-const addComment = asyncHandeler(async (req, res) => {
+const addComment = asynchandler(async (req, res) => {
     // check login
 
     // check data 
@@ -151,7 +150,7 @@ const addComment = asyncHandeler(async (req, res) => {
 
 })
 
-const updateComment = asyncHandeler(async (req, res) => {
+const updateComment = asynchandler(async (req, res) => {
     const CommentId = req.params.commentId
     const { content } = req.body
     if (!content) {
@@ -180,7 +179,7 @@ const updateComment = asyncHandeler(async (req, res) => {
     }
 })
 
-const deleteComment = asyncHandeler(async (req, res) => {
+const deleteComment = asynchandler(async (req, res) => {
     const CommentId = req.params.commentId
 
     try {

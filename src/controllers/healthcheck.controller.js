@@ -2,9 +2,9 @@ import { like } from "../models/like.model.js"
 import { Comment } from "../models/comments.model.js"
 import { ApiError } from "../utils/apierror.js"
 import { ApiResponse } from "../utils/apiresponse.js"
-import { asyncHandeler } from "../utils/asynchandeler.js"
+import { asynchandler } from "../utils/asynchandler.js"
 import { Video } from "../models/Video.model.js"
-const healthcheck = asyncHandeler(async (req, res) => {
+const healthcheck = asynchandler(async (req, res) => {
     // console.log("Health Cheack :: GOOD");
 
     try {

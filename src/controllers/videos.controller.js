@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { asyncHandeler } from "../utils/asynchandeler.js";
+import { asynchandler } from "../utils/asynchandler.js";
 import { ApiError } from "../utils/apierror.js";
 import { ApiResponse } from "../utils/apiresponse.js";
 import axios from "axios";
@@ -12,7 +12,7 @@ import checkServerAvailability from "../utils/checkforvideoencoder.js";
 import AWS from 'aws-sdk';
 import deleteFolderFromS3 from "../utils/deletefilesfroms3.js";
 
-const handleuploadvideo = asyncHandeler(async (req, res) => {
+const handleuploadvideo = asynchandler(async (req, res) => {
     const { tittle, description, isPublished, tegs } = req.body;
     if (!tittle || !description || !isPublished) {
         return res.status(400).json(new ApiError(400, {}, "Title, Description, and Published status are required"));
@@ -79,7 +79,7 @@ const handleuploadvideo = asyncHandeler(async (req, res) => {
 });
 
 
-const handlegetvideosbytimeline = asyncHandeler(async (req, res) => {
+const handlegetvideosbytimeline = asynchandler(async (req, res) => {
 
     const { q, limit } = req.query;
     let sortOption = {}
@@ -105,7 +105,7 @@ const handlegetvideosbytimeline = asyncHandeler(async (req, res) => {
 
 });
 
-const handlegetvideoadv = asyncHandeler(async (req, res) => {
+const handlegetvideoadv = asynchandler(async (req, res) => {
     const { q, limit, page } = req.query;
     let sortOption = {};
     if (q === "newestfirst") {
@@ -178,7 +178,7 @@ const handlegetvideoadv = asyncHandeler(async (req, res) => {
 
 
 })
-const handlegetVideoById = asyncHandeler(async (req, res) => {
+const handlegetVideoById = asynchandler(async (req, res) => {
     const _id = req.params.id;
     if (!mongoose.Types.ObjectId.isValid(_id)) {
         return res.status(400).json(new ApiError(400, {}, "Invalid video ID format"));
@@ -234,7 +234,7 @@ const handlegetVideoById = asyncHandeler(async (req, res) => {
     }
 });
 
-const handlegetvideobytegs = asyncHandeler(async (req, res) => {
+const handlegetvideobytegs = asynchandler(async (req, res) => {
     const { tags, thisvideo } = req.body;
     if (!tags) {
         return res.status(401).json(new ApiError(401, {}, "Please provide at least one tag"));
@@ -324,7 +324,7 @@ const handlegetvideobytegs = asyncHandeler(async (req, res) => {
 
 });
 
-const updateVideodetails = asyncHandeler(async (req, res) => {
+const updateVideodetails = asynchandler(async (req, res) => {
     const _id = req.params.id
 
     //TODO: update video details like title, description, thumbnail
@@ -392,7 +392,7 @@ const extractPrefixFromS3Url = (s3Url) => {
 
 
 // Updated delete video handler
-const handledeleteVideo = asyncHandeler(async (req, res) => {
+const handledeleteVideo = asynchandler(async (req, res) => {
     const _id = req.params.id;
 
     const video = await Video.findById(_id);
@@ -431,7 +431,7 @@ const handledeleteVideo = asyncHandeler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, {}, "Video Deleted Successfully"));
 });
 
-const togglePublishStatus = asyncHandeler(async (req, res) => {
+const togglePublishStatus = asynchandler(async (req, res) => {
     const videoId = req.params.id
     if (!videoId) {
         return res.status(401).json(new ApiError(401, {}, "Please Provide Video Id"))

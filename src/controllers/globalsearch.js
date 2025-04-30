@@ -1,12 +1,12 @@
 import mongoose from "mongoose"
 import { ApiError } from "../utils/apierror.js"
 import { ApiResponse } from "../utils/apiresponse.js"
-import { asyncHandeler } from "../utils/asynchandeler.js"
+import { asynchandler } from "../utils/asynchandler.js"
 import { Video } from "../models/Video.model.js"
 import { Tweet } from "../models/Posts.model.js"
 
 
-const globalsearch = asyncHandeler(async (req, res) => {
+const globalsearch = asynchandler(async (req, res) => {
     const { s } = req.query;
     const { limit, page } = req.query;
 
@@ -92,7 +92,7 @@ const globalsearch = asyncHandeler(async (req, res) => {
     }
 });
 
-const getsearchTweets = asyncHandeler(async (req, res) => {
+const getsearchTweets = asynchandler(async (req, res) => {
     const { s } = req.query; // Search string
     const { limit, page } = req.query;
 
@@ -189,7 +189,7 @@ const getsearchTweets = asyncHandeler(async (req, res) => {
     }
 });
 
-const handlesearchgetvideoadv = asyncHandeler(async (req, res) => {
+const handlesearchgetvideoadv = asynchandler(async (req, res) => {
     const { s, limit, page } = req.query; // Add 's' for search term
 
 
@@ -259,7 +259,7 @@ const handlesearchgetvideoadv = asyncHandeler(async (req, res) => {
     }
 });
 
-const searchUsers = asyncHandeler(async (req, res) => {
+const searchUsers = asynchandler(async (req, res) => {
     const { s, limit, page } = req.query;
     const pageNumber = parseInt(page) || 1;
     const limitOptions = parseInt(limit) || 10;

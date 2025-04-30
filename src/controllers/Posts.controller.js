@@ -1,18 +1,20 @@
 import { Tweet } from "../models/Posts.model.js";
 import { uploadOnCloudinary, deletefromcloudinary } from "../utils/cloudinary.js";
-import { asyncHandeler } from "../utils/asynchandeler.js";
+import { asynchandler } from "../utils/asynchandler.js";
 import { ApiError } from "../utils/apierror.js";
 import { ApiResponse } from "../utils/apiresponse.js";
 import verifypostowner from "../utils/checkforpostowner.js";
 import { like } from "../models/like.model.js";
 import mongoose from "mongoose";
 
-const handleaddblogs = asyncHandeler(async (req, res) => {
+const handleaddblogs = asynchandler(async (req, res) => {
     try {
         const { content, toptitle, tags, coverImageURL, isAnonymous } = req.body;
-        if (!content || !toptitle || !coverImageURL) {
-            return res.status(400).json(new ApiError(400, "Pls Give Atleast One Thing To Post"));
+        // Ensure at least one of the required fields is provided
+        if (!content && !toptitle && !coverImageURL) {
+            return res.status(400).json(new ApiError(400, "Please provide at least one field to post"));
         }
+        
 
         const blog = await Tweet.create({
             content,
@@ -38,7 +40,7 @@ const handleaddblogs = asyncHandeler(async (req, res) => {
     }
 });
 
-const getblogsbasic = asyncHandeler(async (req, res) => {
+const getblogsbasic = asynchandler(async (req, res) => {
     const { q, limit } = req.query;
     let sortOption = {};
     if (q === "newestfirst") {
@@ -58,7 +60,7 @@ const getblogsbasic = asyncHandeler(async (req, res) => {
     }
 });
 
-const getblogsAdv = asyncHandeler(async (req, res) => {
+const getblogsAdv = asynchandler(async (req, res) => {
     const { q, limit, page } = req.query;
 
     // Determine sort order
@@ -197,7 +199,7 @@ const getblogsAdv = asyncHandeler(async (req, res) => {
 
 
 
-const updateeditblogs = asyncHandeler(async (req, res) => {
+const updateeditblogs = asynchandler(async (req, res) => {
     const _id = req.params.id;
 
     try {
@@ -258,7 +260,7 @@ const updateeditblogs = asyncHandeler(async (req, res) => {
     }
 });
 
-const deleteblogs = asyncHandeler(async (req, res) => {
+const deleteblogs = asynchandler(async (req, res) => {
     const _id = req.params.id;
 
     try {
@@ -289,7 +291,7 @@ const deleteblogs = asyncHandeler(async (req, res) => {
     }
 });
 
-const handlegetindividualblog = asyncHandeler(async (req, res) => {
+const handlegetindividualblog = asynchandler(async (req, res) => {
     const _id = req.params.id;
     try {
         const blog = await Tweet.findById(_id);

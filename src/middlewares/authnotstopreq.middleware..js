@@ -1,10 +1,10 @@
 import { ApiError } from "../utils/apierror.js";
-import { asyncHandeler } from "../utils/asynchandeler.js";
+import { asynchandler } from "../utils/asynchandler.js";
 import { Client, Account } from "appwrite";
 import { client } from "../Appwrite_Services/appwrite.js";
 import UserProfileService from "../Appwrite_Services/userProfileService.js";
 
-export const addedusertoreqdontstopresponse = asyncHandeler(async (req, res, next) => {
+export const addedusertoreqdontstopresponse = asynchandler(async (req, res, next) => {
     const rawToken = req.headers.authorization;
     const jwt = rawToken?.replace("Bearer ", "").trim();
 

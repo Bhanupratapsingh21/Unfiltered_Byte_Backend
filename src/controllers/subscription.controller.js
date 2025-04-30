@@ -2,10 +2,10 @@ import mongoose from "mongoose"
 import { Subscription } from "../models/subscription.model.js"
 import { ApiError } from "../utils/apierror.js"
 import { ApiResponse } from "../utils/apiresponse.js"
-import { asyncHandeler } from "../utils/asynchandeler.js"
+import { asynchandler } from "../utils/asynchandler.js"
 
 
-const toggleSubscription = asyncHandeler(async (req, res) => {
+const toggleSubscription = asynchandler(async (req, res) => {
     const channelId = req.params.channelId;
 
     if (!channelId) {
@@ -44,7 +44,7 @@ const toggleSubscription = asyncHandeler(async (req, res) => {
 
 
 // controller to return subscriber list of a channel
-const getUserChannelSubscribers = asyncHandeler(async (req, res) => {
+const getUserChannelSubscribers = asynchandler(async (req, res) => {
     const { channelId } = req.params;
     const { limit, page } = req.query;
 
@@ -105,7 +105,7 @@ const getUserChannelSubscribers = asyncHandeler(async (req, res) => {
 
 
 // controller to return channel list to which user has subscribed
-const getSubscribedChannels = asyncHandeler(async (req, res) => {
+const getSubscribedChannels = asynchandler(async (req, res) => {
     const { subscriberId } = req.params
     const { limit, page } = req.query;
 
