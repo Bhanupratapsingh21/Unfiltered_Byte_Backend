@@ -1,40 +1,44 @@
-import AWS from 'aws-sdk';
+import { S3Client, ListObjectsV2Command, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 
+const s3Client = new S3Client({
+    region: process.env.AWS_REGION, // e.g., 'ap-south-1'
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY,
+        secretAccessKey: process.env.AWS_SECRET_KEY
+    }
+});
 
-const s3 = new AWS.S3(); // Initialize the S3 client
-
-// Function to delete all objects in a folder (prefix) in S3
+// Function to delete all objects under a folder/prefix in S3
 const deleteFolderFromS3 = async (folderPrefix) => {
     const listParams = {
         Bucket: process.env.S3_BUCKET_NAME,
-        Prefix: folderPrefix, // Folder or prefix to delete
+        Prefix: folderPrefix,
     };
 
     try {
-        // List all objects in the folder (prefix)
-        const listedObjects = await s3.listObjectsV2(listParams).promise();
+        // Step 1: List all objects with the given prefix
+        const listedObjects = await s3Client.send(new ListObjectsV2Command(listParams));
 
-        if (listedObjects.Contents.length === 0) {
-            //console.log('No objects found to delete.');
-            return;
+        if (!listedObjects.Contents || listedObjects.Contents.length === 0) {
+            return; // Nothing to delete
         }
 
-        // Prepare objects to be deleted
+        // Step 2: Prepare delete parameters
         const deleteParams = {
             Bucket: process.env.S3_BUCKET_NAME,
             Delete: {
-                Objects: listedObjects.Contents.map(object => ({ Key: object.Key })),
-            },
+                Objects: listedObjects.Contents.map(obj => ({ Key: obj.Key })),
+                Quiet: true
+            }
         };
 
-        // Delete all objects in the folder (prefix)
-        const deleteResult = await s3.deleteObjects(deleteParams).promise();
-        //console.log('Delete result:', deleteResult);
+        // Step 3: Delete the objects
+        const deleteResult = await s3Client.send(new DeleteObjectsCommand(deleteParams));
         return deleteResult;
-    } catch (error) {
-        console.error('Error deleting folder from S3:', error);
-        throw new Error('Failed to delete folder from S3');
+    } catch (err) {
+        console.error("Failed to delete S3 folder:", err);
+        throw err;
     }
 };
 
-export default deleteFolderFromS3
+export default deleteFolderFromS3;

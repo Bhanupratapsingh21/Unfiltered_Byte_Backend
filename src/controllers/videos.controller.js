@@ -9,7 +9,6 @@ import verifypostowner from "../utils/checkforpostowner.js";
 import { like } from "../models/like.model.js";
 import { Subscription } from "../models/subscription.model.js";
 import checkServerAvailability from "../utils/checkforvideoencoder.js";
-import AWS from 'aws-sdk';
 import deleteFolderFromS3 from "../utils/deletefilesfroms3.js";
 
 const handleuploadvideo = asynchandler(async (req, res) => {
